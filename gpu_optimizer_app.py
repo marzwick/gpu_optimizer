@@ -77,31 +77,47 @@ def main():
     # Location selection
     st.sidebar.subheader("Location")
     
+    # Initialize location in session state if not exists
+    if 'request_location' not in st.session_state:
+        st.session_state.request_location = False
+    if 'detected_location' not in st.session_state:
+        st.session_state.detected_location = None
+
     # Add auto-detect button
     if st.sidebar.button("📍 Use My Current Location", use_container_width=True):
+        st.session_state.request_location = True
         st.sidebar.info("Please allow location access when prompted...")
-    
-    # Try to get geolocation
-    location = streamlit_geolocation()
-    
+
+    # Only try to get geolocation if button was clicked
+    location = None
+    if st.session_state.request_location:
+        location = streamlit_geolocation()
+        if location and location.get('latitude') and location.get('longitude'):
+            st.session_state.detected_location = location
+            st.session_state.request_location = False  # Reset the request flag
+
     # Manual input (always available)
     col1, col2 = st.sidebar.columns(2)
-    
+
     # Use detected location as default values if available
-    default_lat = location['latitude'] if location and location.get('latitude') else 0.0
-    default_lon = location['longitude'] if location and location.get('longitude') else 0.0
-    
+    default_lat = 0.0
+    default_lon = 0.0
+
+    if st.session_state.detected_location and st.session_state.detected_location.get('latitude'):
+        default_lat = st.session_state.detected_location['latitude']
+        default_lon = st.session_state.detected_location['longitude']
+
     lat = col1.number_input("Latitude:", value=default_lat, format="%.4f")
     lon = col2.number_input("Longitude:", value=default_lon, format="%.4f")
-    
+
     # Show status
-    if location and location.get('latitude') and location.get('longitude'):
-        if lat == location['latitude'] and lon == location['longitude']:
+    if st.session_state.detected_location and st.session_state.detected_location.get('latitude'):
+        if lat == st.session_state.detected_location['latitude'] and lon == st.session_state.detected_location['longitude']:
             st.sidebar.success("✅ Using detected location")
         else:
-            st.sidebar.info("📝 Using manual coordinates")
+            st.sidebar.info("Using manual coordinates")
     else:
-        st.sidebar.info("📝 Using manual coordinates")
+        st.sidebar.info("Using manual coordinates")
     
     user_location = (lat, lon)
     location_display = f"({lat:.4f}, {lon:.4f})"
