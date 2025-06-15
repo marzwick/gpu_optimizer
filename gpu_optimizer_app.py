@@ -76,8 +76,8 @@ def main():
     # Location selection - coordinates only
     st.sidebar.subheader("Location")
     col1, col2 = st.sidebar.columns(2)
-    lat = col1.number_input("Latitude:", value=37.7749, format="%.4f")
-    lon = col2.number_input("Longitude:", value=-122.4194, format="%.4f")
+    lat = col1.number_input("Latitude:", value=0.0, format="%.4f")
+    lon = col2.number_input("Longitude:", value=0.0, format="%.4f")
     user_location = (lat, lon)
     location_display = f"({lat:.4f}, {lon:.4f})"
     
