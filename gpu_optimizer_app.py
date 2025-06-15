@@ -302,7 +302,7 @@ def main():
             st.caption(f"📍 Your location → Selected GPU")
         
         # Generate map
-        map_obj = optimizer.create_map(profile_used, hours_used, show_climate_zones)
+        map_obj = optimizer.create_map(profile_used, hours_used)
         
         # Display map
         st_folium(map_obj, width=1200, height=600)
