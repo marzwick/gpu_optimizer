@@ -311,13 +311,6 @@ def main():
         
         # Display map
         st_folium(map_obj, width=1200, height=600)
-        
-        # Detailed report section
-        with st.expander("📋 Detailed Sustainability Report"):
-            report = optimizer.create_sustainability_report(profile_used, hours_used)
-            
-            st.json(report)
-        
 
     
     else:
