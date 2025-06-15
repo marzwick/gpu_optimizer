@@ -6,6 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from gpu_optimizer import GPUNetworkOptimizer
+from streamlit_geolocation import streamlit_geolocation
 
 st.set_page_config(
     page_title="GPU Network Optimizer",
@@ -73,11 +74,35 @@ def main():
     # Sidebar controls
     st.sidebar.title("Parameters")
     
-    # Location selection - coordinates only
+    # Location selection
     st.sidebar.subheader("Location")
+    
+    # Add auto-detect button
+    if st.sidebar.button("📍 Use My Current Location", use_container_width=True):
+        st.sidebar.info("Please allow location access when prompted...")
+    
+    # Try to get geolocation
+    location = streamlit_geolocation()
+    
+    # Manual input (always available)
     col1, col2 = st.sidebar.columns(2)
-    lat = col1.number_input("Latitude:", value=0.0, format="%.4f")
-    lon = col2.number_input("Longitude:", value=0.0, format="%.4f")
+    
+    # Use detected location as default values if available
+    default_lat = location['latitude'] if location and location.get('latitude') else 0.0
+    default_lon = location['longitude'] if location and location.get('longitude') else 0.0
+    
+    lat = col1.number_input("Latitude:", value=default_lat, format="%.4f")
+    lon = col2.number_input("Longitude:", value=default_lon, format="%.4f")
+    
+    # Show status
+    if location and location.get('latitude') and location.get('longitude'):
+        if lat == location['latitude'] and lon == location['longitude']:
+            st.sidebar.success("✅ Using detected location")
+        else:
+            st.sidebar.info("📝 Using manual coordinates")
+    else:
+        st.sidebar.info("📝 Using manual coordinates")
+    
     user_location = (lat, lon)
     location_display = f"({lat:.4f}, {lon:.4f})"
     
