@@ -55,20 +55,12 @@ st.markdown("""
 def load_optimizer_safe(user_location=None):
     """Load and cache the optimizer with better error handling"""
     try:
-        # First try to create optimizer without location to test basic loading
-        if user_location is None:
-            optimizer = GPUNetworkOptimizer(
-                gpu_csv_path="gpu_providers.csv",
-                cables_geojson_path="submarine_cables.geojson", 
-                climate_zones_path="climate_zones.geojson"
-            )
-        else:
-            optimizer = GPUNetworkOptimizer(
-                gpu_csv_path="gpu_providers.csv",
-                cables_geojson_path="submarine_cables.geojson", 
-                climate_zones_path="climate_zones.geojson",
-                user_location=user_location
-            )
+        optimizer = GPUNetworkOptimizer(
+            gpu_csv_path="gpu_providers.csv",
+            cables_geojson_path="submarine_cables.geojson", 
+            climate_zones_path="climate_zones.geojson",
+            user_location=user_location
+        )
         return optimizer, None
     except Exception as e:
         return None, str(e)
@@ -81,25 +73,13 @@ def main():
     # Sidebar controls
     st.sidebar.title("Parameters")
     
-    # Location selection - simplified to only coordinates and auto-detect
+    # Location selection - coordinates only
     st.sidebar.subheader("Location")
-    location_method = st.sidebar.radio(
-        "Location Method:",
-        ["Auto-detect", "Enter Coordinates"]
-    )
-    
-    user_location = None
-    location_display = "Auto-detecting..."
-    
-    if location_method == "Auto-detect":
-        user_location = None  # Let the optimizer handle auto-detection
-        location_display = "Auto-detected from IP"
-    elif location_method == "Enter Coordinates":
-        col1, col2 = st.sidebar.columns(2)
-        lat = col1.number_input("Latitude:", value=0.0, format="%.4f")
-        lon = col2.number_input("Longitude:", value=0.0, format="%.4f")
-        user_location = (lat, lon)
-        location_display = f"({lat:.4f}, {lon:.4f})"
+    col1, col2 = st.sidebar.columns(2)
+    lat = col1.number_input("Latitude:", value=37.7749, format="%.4f")
+    lon = col2.number_input("Longitude:", value=-122.4194, format="%.4f")
+    user_location = (lat, lon)
+    location_display = f"({lat:.4f}, {lon:.4f})"
     
     # Load optimizer with user location
     optimizer, error = load_optimizer_safe(user_location)
@@ -121,7 +101,7 @@ def main():
         st.sidebar.caption(f"Coordinates: ({current_lat:.4f}, {current_lon:.4f})")
     except Exception as e:
         st.sidebar.warning(f"Location issue: {e}")
-        st.sidebar.info("Using default location: San Francisco")
+        st.sidebar.info("Please enter valid coordinates")
     
     # User inputs
     st.sidebar.subheader("Optimization Settings")
@@ -313,41 +293,7 @@ def main():
             
             st.json(report)
         
-        # Download section
-        st.header("📥 Export Results")
-        
-        col_down1, col_down2 = st.columns(2)
-        
-        with col_down1:
-            # Download map as HTML
-            map_html = map_obj._repr_html_()
-            st.download_button(
-                label="📄 Download Map (HTML)",
-                data=map_html,
-                file_name=f"gpu_optimization_map_{profile_used}.html",
-                mime="text/html"
-            )
-        
-        with col_down2:
-            # Download results as CSV
-            results_df = pd.DataFrame([{
-                'Profile': profile_used,
-                'Location': gpu.get('location', 'Unknown'),
-                'Provider': gpu.get('provider', 'Unknown'),
-                'Latency_ms': latency,
-                'Total_Cost': costs['total_cost'],
-                'Water_Usage_L': costs['water_usage_liters'],
-                'Climate_Zone': costs['climate_zone'],
-                'Sustainability_Grade': optimizer._calculate_sustainability_grade(costs)
-            }])
-            
-            csv = results_df.to_csv(index=False)
-            st.download_button(
-                label="📊 Download Results (CSV)",
-                data=csv,
-                file_name=f"gpu_optimization_results_{profile_used}.csv",
-                mime="text/csv"
-            )
+
     
     else:
         # Initial state - show information
