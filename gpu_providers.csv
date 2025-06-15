@@ -1,0 +1,47 @@
+provider,instance_type,gpu_model,gpu_count,location,region_code,latitude,longitude,hourly_cost_usd,electricity_price_kwh,gpu_power_watts,compute_capability,memory_gb,network_bandwidth_gbps
+AWS,p4d.xlarge,A100,1,N. Virginia,us-east-1,39.0458,-77.5017,3.2,0.12,400,8,40,25
+AWS,p4d.2xlarge,A100,2,N. Virginia,us-east-1,39.0458,-77.5017,6.4,0.12,400,8,80,50
+AWS,p3.2xlarge,V100,1,N. Virginia,us-east-1,39.0458,-77.5017,2.4,0.12,300,7,16,25
+AWS,g5.xlarge,A10G,1,N. Virginia,us-east-1,39.0458,-77.5017,1.1,0.12,150,8.6,24,10
+AWS,g4dn.xlarge,T4,1,N. Virginia,us-east-1,39.0458,-77.5017,0.53,0.12,70,7.5,16,25
+AWS,p4d.xlarge,A100,1,Oregon,us-west-2,45.5152,-122.6784,3.2,0.1,400,8,40,25
+AWS,p4d.2xlarge,A100,2,Oregon,us-west-2,45.5152,-122.6784,6.4,0.1,400,8,80,50
+AWS,p3.2xlarge,V100,1,Oregon,us-west-2,45.5152,-122.6784,2.4,0.1,300,7,16,25
+AWS,g5.xlarge,A10G,1,Oregon,us-west-2,45.5152,-122.6784,1.1,0.1,150,8.6,24,10
+AWS,g4dn.xlarge,T4,1,Oregon,us-west-2,45.5152,-122.6784,0.53,0.1,70,7.5,16,25
+AWS,p4d.xlarge,A100,1,Ireland,eu-west-1,53.3498,-6.2603,3.2,0.25,400,8,40,25
+AWS,p3.2xlarge,V100,1,Ireland,eu-west-1,53.3498,-6.2603,2.4,0.25,300,7,16,25
+AWS,g5.xlarge,A10G,1,Ireland,eu-west-1,53.3498,-6.2603,1.1,0.25,150,8.6,24,10
+AWS,p4d.xlarge,A100,1,Singapore,ap-southeast-1,1.3521,103.8198,3.2,0.22,400,8,40,25
+AWS,p3.2xlarge,V100,1,Singapore,ap-southeast-1,1.3521,103.8198,2.4,0.22,300,7,16,25
+AWS,g4dn.xlarge,T4,1,Singapore,ap-southeast-1,1.3521,103.8198,0.53,0.22,70,7.5,16,25
+AWS,p4d.xlarge,A100,1,Frankfurt,eu-central-1,50.1109,8.6821,3.2,0.31,400,8,40,25
+AWS,p3.2xlarge,V100,1,Frankfurt,eu-central-1,50.1109,8.6821,2.4,0.31,300,7,16,25
+GCP,n1-standard-4,V100,1,Iowa,us-central1,41.5868,-93.625,2.25,0.11,300,7,16,32
+GCP,n1-standard-8,V100,2,Iowa,us-central1,41.5868,-93.625,4.5,0.11,300,7,32,32
+GCP,a2-highgpu-1g,A100,1,Iowa,us-central1,41.5868,-93.625,2.95,0.11,400,8,40,50
+GCP,g2-standard-4,L4,1,Iowa,us-central1,41.5868,-93.625,0.95,0.11,72,8.9,24,50
+GCP,n1-standard-4,T4,1,Iowa,us-central1,41.5868,-93.625,0.48,0.11,70,7.5,16,32
+GCP,n1-standard-4,V100,1,Oregon,us-west1,45.5152,-122.6784,2.25,0.1,300,7,16,32
+GCP,a2-highgpu-1g,A100,1,Oregon,us-west1,45.5152,-122.6784,2.95,0.1,400,8,40,50
+GCP,g2-standard-4,L4,1,Oregon,us-west1,45.5152,-122.6784,0.95,0.1,72,8.9,24,50
+GCP,n1-standard-4,V100,1,Netherlands,europe-west4,52.3676,4.9041,2.25,0.28,300,7,16,32
+GCP,a2-highgpu-1g,A100,1,Netherlands,europe-west4,52.3676,4.9041,2.95,0.28,400,8,40,50
+GCP,g2-standard-4,L4,1,Netherlands,europe-west4,52.3676,4.9041,0.95,0.28,72,8.9,24,50
+GCP,n1-standard-4,V100,1,Taiwan,asia-east1,25.033,121.5654,2.25,0.18,300,7,16,32
+GCP,a2-highgpu-1g,A100,1,Taiwan,asia-east1,25.033,121.5654,2.95,0.18,400,8,40,50
+GCP,n1-standard-4,V100,1,Sydney,australia-southeast1,-33.8688,151.2093,2.25,0.35,300,7,16,32
+GCP,a2-highgpu-1g,A100,1,Sydney,australia-southeast1,-33.8688,151.2093,2.95,0.35,400,8,40,50
+Azure,Standard_NC6s_v3,V100,1,East US,eastus,37.3719,-79.8164,2.7,0.13,300,7,16,24
+Azure,Standard_NC12s_v3,V100,2,East US,eastus,37.3719,-79.8164,5.4,0.13,300,7,32,24
+Azure,Standard_ND96asr_v4,A100,8,East US,eastus,37.3719,-79.8164,27.2,0.13,400,8,320,200
+Azure,Standard_NC4as_T4_v3,T4,1,East US,eastus,37.3719,-79.8164,0.55,0.13,70,7.5,16,32
+Azure,Standard_NC6s_v3,V100,1,West US 2,westus2,47.2529,-119.852,2.7,0.09,300,7,16,24
+Azure,Standard_NC12s_v3,V100,2,West US 2,westus2,47.2529,-119.852,5.4,0.09,300,7,32,24
+Azure,Standard_ND96asr_v4,A100,8,West US 2,westus2,47.2529,-119.852,27.2,0.09,400,8,320,200
+Azure,Standard_NC6s_v3,V100,1,North Europe,northeurope,53.3478,-6.2597,2.7,0.24,300,7,16,24
+Azure,Standard_NC12s_v3,V100,2,North Europe,northeurope,53.3478,-6.2597,5.4,0.24,300,7,32,24
+Azure,Standard_NC6s_v3,V100,1,Southeast Asia,southeastasia,1.3521,103.8198,2.7,0.22,300,7,16,24
+Azure,Standard_NC4as_T4_v3,T4,1,Southeast Asia,southeastasia,1.3521,103.8198,0.55,0.22,70,7.5,16,32
+Azure,Standard_NC6s_v3,V100,1,Japan East,japaneast,35.6762,139.6503,2.7,0.26,300,7,16,24
+Azure,Standard_NC4as_T4_v3,T4,1,Japan East,japaneast,35.6762,139.6503,0.55,0.26,70,7.5,16,32
