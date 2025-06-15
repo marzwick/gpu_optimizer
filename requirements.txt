@@ -1,0 +1,10 @@
+streamlit
+pandas
+geopandas
+folium
+streamlit-folium
+plotly
+geocoder
+geopy
+networkx
+shapely
