@@ -145,11 +145,6 @@ def main():
         help="How long will you need to use the GPU?"
     )
     
-    show_climate_zones = st.sidebar.checkbox(
-        "Show Climate Zones on Map",
-        value=True,
-    )
-    
     # Run optimization button
     st.sidebar.markdown("---")
     if st.sidebar.button("Find Optimal GPU", type="primary", use_container_width=True):
