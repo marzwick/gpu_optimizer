@@ -79,7 +79,7 @@ def main():
     
     # Add auto-detect button
     if st.sidebar.button("📍 Use My Current Location", use_container_width=True):
-        st.sidebar.info("Please allow location access when prompted...")
+        st.sidebar.info("Please allow location access using the target icon.")
     
     # Try to get geolocation
     location = streamlit_geolocation()
