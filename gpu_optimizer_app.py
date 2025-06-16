@@ -113,7 +113,7 @@ def main():
         st.error("Please check your data files exist:")
         st.code("""
         Required files:
-        - gpu_providers.csv
+        - fake_gpu_instance.csv.csv
         - submarine_cables.geojson  
         - climate_zones.geojson
         """)
