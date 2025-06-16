@@ -57,7 +57,7 @@ def load_optimizer_safe(user_location=None):
     """Load and cache the optimizer with better error handling"""
     try:
         optimizer = GPUNetworkOptimizer(
-            gpu_csv_path="gpu_providers.csv",
+            gpu_csv_path="fake_gpu_instance.csv",
             cables_geojson_path="submarine_cables.geojson", 
             climate_zones_path="climate_zones.geojson",
             user_location=user_location
