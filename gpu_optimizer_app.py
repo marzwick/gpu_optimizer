@@ -318,9 +318,6 @@ def main():
         st.header("About")
         st.info("Smart GPU selection through spatial analysis. This tool factors in real submarine cable networks, data center climate zones, and geographic routing to recommend the GPU that's actually fastest and most cost-effective from your location. Geography matters in cloud computing.")
         
-        # Show performance improvements
-        st.success("🚀 **Performance Enhanced**: Now using intelligent caching for 10x faster optimization!")
-        
         # Info boxes
         col_info1, col_info2, col_info3 = st.columns(3)
         
