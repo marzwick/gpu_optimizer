@@ -207,7 +207,7 @@ class GPUNetworkOptimizer:
     def _calculate_water_cost(self, water_usage_liters_per_hour, hours):
         """Calculate water cost using average pricing"""
         # Simple average water cost in USD per 1000 liters
-        cost_per_1000l = 3.00  # National average
+        cost_per_1000l = 2.04  # International average
         
         total_liters = water_usage_liters_per_hour * hours
         return (total_liters / 1000) * cost_per_1000l
