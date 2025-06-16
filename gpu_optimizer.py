@@ -8,6 +8,9 @@ from shapely.geometry import Point
 from geopy.distance import geodesic
 import networkx as nx
 import folium
+import streamlit as st
+from functools import lru_cache
+import hashlib
 
 class GPUNetworkOptimizer:
     def __init__(self, gpu_csv_path, cables_geojson_path, climate_zones_path, user_location=None):
@@ -41,6 +44,99 @@ class GPUNetworkOptimizer:
         
         # Pre-calculate dataset statistics for normalization
         self._calculate_dataset_stats()
+        
+        # Pre-calculate expensive operations
+        self._initialize_caches()
+    
+    def _initialize_caches(self):
+        """Pre-calculate expensive operations and cache them"""
+        with st.spinner("Initializing GPU network optimizer... (one-time setup)"):
+            # Pre-calculate all latencies
+            self._precompute_latencies()
+            # Pre-calculate all climate zones
+            self._precompute_climate_zones()
+    
+    @st.cache_data
+    def _precompute_latencies(_self):
+        """Pre-compute all network latencies and cache them"""
+        latency_cache = {}
+        progress_bar = st.progress(0)
+        
+        for i, (_, row) in enumerate(_self.gpu_data.iterrows()):
+            key = f"{row['latitude']},{row['longitude']}"
+            if key not in latency_cache:
+                latency_cache[key] = _self._network_latency_uncached(row['latitude'], row['longitude'])
+            progress_bar.progress((i + 1) / len(_self.gpu_data))
+        
+        progress_bar.empty()
+        return latency_cache
+    
+    @st.cache_data
+    def _precompute_climate_zones(_self):
+        """Pre-compute all climate zones and cache them"""
+        climate_cache = {}
+        
+        for _, row in _self.gpu_data.iterrows():
+            key = f"{row['latitude']},{row['longitude']}"
+            if key not in climate_cache:
+                climate_cache[key] = _self._get_climate_zone_uncached(row['latitude'], row['longitude'])
+        
+        return climate_cache
+    
+    def _network_latency(self, gpu_lat, gpu_lon):
+        """Get cached network latency"""
+        if not hasattr(self, '_latency_cache'):
+            self._latency_cache = self._precompute_latencies()
+        
+        key = f"{gpu_lat},{gpu_lon}"
+        return self._latency_cache.get(key, self._haversine_latency(self.user_lat, self.user_lon, gpu_lat, gpu_lon))
+    
+    def _get_climate_zone(self, lat, lon):
+        """Get cached climate zone"""
+        if not hasattr(self, '_climate_cache'):
+            self._climate_cache = self._precompute_climate_zones()
+        
+        key = f"{lat},{lon}"
+        return self._climate_cache.get(key, self._estimate_climate_zone(lat))
+    
+    def _network_latency_uncached(self, gpu_lat, gpu_lon):
+        """Original network latency calculation (uncached)"""
+        user_nearest = self._find_nearest_points(self.user_lat, self.user_lon, 3)
+        gpu_nearest = self._find_nearest_points(gpu_lat, gpu_lon, 3)
+        
+        min_distance = float('inf')
+        for _, u_lp in user_nearest.iterrows():
+            for _, g_lp in gpu_nearest.iterrows():
+                try:
+                    path_length = nx.shortest_path_length(self.cable_network, u_lp['id'], g_lp['id'], weight='weight')
+                    user_to_lp = geodesic((self.user_lat, self.user_lon), (u_lp['latitude'], u_lp['longitude'])).kilometers
+                    gpu_to_lp = geodesic((gpu_lat, gpu_lon), (g_lp['latitude'], g_lp['longitude'])).kilometers
+                    total = user_to_lp + path_length + gpu_to_lp
+                    min_distance = min(min_distance, total)
+                except nx.NetworkXNoPath:
+                    continue
+        
+        return (min_distance * 0.02) + 5 if min_distance != float('inf') else self._haversine_latency(self.user_lat, self.user_lon, gpu_lat, gpu_lon)
+    
+    def _get_climate_zone_uncached(self, lat, lon):
+        """Original climate zone calculation (uncached)"""
+        point = Point(lon, lat)
+        
+        # Check which climate zone polygon contains this point
+        for _, zone in self.climate_zones_gdf.iterrows():
+            if zone.geometry.contains(point):
+                return zone['BA_Climate_Zone']
+        
+        # Fallback if point not in any zone (maybe outside North America)
+        return self._estimate_climate_zone(lat)
+    
+    @lru_cache(maxsize=1000)
+    def _haversine_latency(self, lat1, lon1, lat2, lon2):
+        """Cached haversine distance calculation"""
+        lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+        dlat, dlon = lat1 - lat2, lon1 - lon2
+        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+        return (6371 * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)) * 0.02) + 5
     
     def _calculate_dataset_stats(self):
         """Calculate dataset statistics for proper normalization"""
@@ -64,12 +160,10 @@ class GPUNetworkOptimizer:
     def set_user_location(self, location_input):
         """
         Set user location from coordinates or auto-detection
-        
-        Args:
-            location_input: Can be:
-                - Tuple of (lat, lon) coordinates
-                - 'auto' to use IP-based detection
+        Clear caches when location changes
         """
+        old_location = (self.user_lat, self.user_lon)
+        
         if location_input == 'auto':
             try:
                 self.user_lat, self.user_lon = geocoder.ip('me').latlng
@@ -80,22 +174,15 @@ class GPUNetworkOptimizer:
             self.user_lat, self.user_lon = location_input
         else:
             raise ValueError("Location must be 'auto' or (lat, lon) tuple")
+        
+        # Clear latency cache if location changed
+        if (self.user_lat, self.user_lon) != old_location:
+            if hasattr(self, '_latency_cache'):
+                delattr(self, '_latency_cache')
     
     def get_user_location(self):
         """Return current user location as (lat, lon) tuple"""
         return (self.user_lat, self.user_lon)
-    
-    def _get_climate_zone(self, lat, lon):
-        """Determine climate zone for a given location using the GeoJSON data"""
-        point = Point(lon, lat)
-        
-        # Check which climate zone polygon contains this point
-        for _, zone in self.climate_zones_gdf.iterrows():
-            if zone.geometry.contains(point):
-                return zone['BA_Climate_Zone']
-        
-        # Fallback if point not in any zone (maybe outside North America)
-        return self._estimate_climate_zone(lat)
     
     def _estimate_climate_zone(self, lat):
         """Fallback climate estimation based on latitude"""
@@ -107,7 +194,7 @@ class GPUNetworkOptimizer:
         else: return 'Hot-Humid'
     
     def _calculate_water_usage(self, gpu_power_watts, lat, lon):
-        """Calculate water usage in liters per hour based on climate zone"""
+        """Calculate water usage in liters per hour based on climate zone (cached)"""
         climate_zone = self._get_climate_zone(lat, lon)
         base_rate = self.water_usage_rates.get(climate_zone, 1.5)  # Default moderate rate
         
@@ -183,43 +270,19 @@ class GPUNetworkOptimizer:
             for _, east in east_coast.iterrows():
                 G.add_edge(west['id'], east['id'], weight=4500, cable_name='US_Terrestrial')
     
-    def _haversine_latency(self, lat1, lon1, lat2, lon2):
-        lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
-        dlat, dlon = lat1 - lat2, lon1 - lon2
-        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-        return (6371 * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)) * 0.02) + 5
-    
-    def _network_latency(self, gpu_lat, gpu_lon):
-        user_nearest = self._find_nearest_points(self.user_lat, self.user_lon, 3)
-        gpu_nearest = self._find_nearest_points(gpu_lat, gpu_lon, 3)
-        
-        min_distance = float('inf')
-        for _, u_lp in user_nearest.iterrows():
-            for _, g_lp in gpu_nearest.iterrows():
-                try:
-                    path_length = nx.shortest_path_length(self.cable_network, u_lp['id'], g_lp['id'], weight='weight')
-                    user_to_lp = geodesic((self.user_lat, self.user_lon), (u_lp['latitude'], u_lp['longitude'])).kilometers
-                    gpu_to_lp = geodesic((gpu_lat, gpu_lon), (g_lp['latitude'], g_lp['longitude'])).kilometers
-                    total = user_to_lp + path_length + gpu_to_lp
-                    min_distance = min(min_distance, total)
-                except nx.NetworkXNoPath:
-                    continue
-        
-        return (min_distance * 0.02) + 5 if min_distance != float('inf') else self._haversine_latency(self.user_lat, self.user_lon, gpu_lat, gpu_lon)
-    
     def _find_nearest_points(self, lat, lon, n):
         distances = self.landing_points_gdf.geometry.apply(lambda lp: geodesic((lat, lon), (lp.y, lp.x)).kilometers)
         return self.landing_points_gdf.loc[distances.nsmallest(n).index]
     
     def _calculate_total_cost(self, row, hours):
-        """Enhanced cost calculation including water costs"""
+        """Enhanced cost calculation including water costs (uses cached climate zones)"""
         # Base compute cost
         compute_cost = row['hourly_cost_usd'] * hours
         
         # Electricity cost
         electricity_cost = (row['gpu_power_watts'] / 1000) * row['electricity_price_kwh'] * hours
         
-        # Water usage and cost
+        # Water usage and cost (now cached)
         water_usage_per_hour, climate_zone = self._calculate_water_usage(
             row['gpu_power_watts'], 
             row['latitude'], 
@@ -235,7 +298,7 @@ class GPUNetworkOptimizer:
             'electricity_cost': electricity_cost,
             'water_cost': water_cost,
             'water_usage_liters': total_water_usage,
-            'water_usage_per_hour': water_usage_per_hour,  # FIXED: Added this line
+            'water_usage_per_hour': water_usage_per_hour,
             'climate_zone': climate_zone
         }
     
@@ -248,7 +311,7 @@ class GPUNetworkOptimizer:
         return (1 - normalized) if invert else normalized
     
     def optimize(self, profile, hours):
-        """Enhanced optimization with better scoring and normalization"""
+        """Enhanced optimization with better scoring and normalization (now much faster with caching)"""
         # Balanced weight profiles that prioritize different aspects accurately
         weight_profiles = {
             'ultra_latency': {'latency': 0.7, 'performance': 0.2, 'cost': 0.1, 'water_impact': 0.0},
@@ -259,22 +322,31 @@ class GPUNetworkOptimizer:
         
         weights = weight_profiles[profile]
         
-        # Pre-calculate all metrics for proper normalization
+        # Pre-calculate all metrics for proper normalization (now much faster!)
         all_latencies = []
         all_costs = []
         all_water_usage = []
         all_performance = []
         all_rows = []
         
-        for _, row in self.gpu_data.iterrows():
-            latency = self._network_latency(row['latitude'], row['longitude'])
-            costs = self._calculate_total_cost(row, hours)
+        # Show progress for optimization
+        progress_bar = st.progress(0)
+        st.text(f"Optimizing {len(self.gpu_data)} GPU options...")
+        
+        for i, (_, row) in enumerate(self.gpu_data.iterrows()):
+            latency = self._network_latency(row['latitude'], row['longitude'])  # Now cached!
+            costs = self._calculate_total_cost(row, hours)  # Climate zones now cached!
             
             all_latencies.append(latency)
             all_costs.append(costs['total_cost'])
             all_water_usage.append(costs['water_usage_liters'])
             all_performance.append(row['compute_capability'])
             all_rows.append((row, latency, costs))
+            
+            # Update progress
+            progress_bar.progress((i + 1) / len(self.gpu_data))
+        
+        progress_bar.empty()
         
         # Get min/max for normalization
         min_latency, max_latency = min(all_latencies), max(all_latencies)
@@ -370,13 +442,7 @@ class GPUNetworkOptimizer:
         return report
     
     def _calculate_sustainability_grade(self, costs, hours=24):
-        """
-        FIXED: Assign sustainability grade based on water usage per hour
-        
-        Updated with realistic thresholds based on actual data analysis:
-        - Range: 0.12L/hr (300W Subarctic) to 3.30L/hr (1500W Hot-Humid)
-        - Thresholds derived from analysis of real GPU power consumption
-        """
+        """Assign sustainability grade based on water usage per hour"""
         # Calculate water usage per hour
         if 'water_usage_per_hour' in costs:
             water_per_hour = costs['water_usage_per_hour']
