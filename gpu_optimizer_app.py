@@ -70,6 +70,12 @@ def main():
     # Header
     st.markdown('<h1 class="main-header">GPU Network Optimizer</h1>', unsafe_allow_html=True)
     st.markdown("**GPU selection based on network latency, cost, and water usage**")
+
+    st.warning("""
+    ⚠️ **Important Disclaimer**: The GPU instance data shown in this application is synthetic test data created for demonstration purposes. 
+    Real cloud provider APIs are not accessible for this project. This tool demonstrates how such an optimization system would 
+    theoretically work using actual climate zone data, submarine cable routes, and water usage calculations.
+    """)
     
     # Sidebar controls
     st.sidebar.title("Parameters")
