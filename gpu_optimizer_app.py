@@ -15,18 +15,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-if "logged_in" not in st.session_state:
+# if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-if not st.session_state.logged_in:
-    password = st.text_input("Enter password:", type="password")
+# if not st.session_state.logged_in:
+ #   password = st.text_input("Enter password:", type="password")
     
-    if password == "marzwickgeo":
-        st.session_state.logged_in = True
-        st.rerun()
-    elif password:
-        st.warning("Incorrect password.")
-    st.stop()
+   # if password == "marzwickgeo":
+   #     st.session_state.logged_in = True
+   #     st.rerun()
+   # elif password:
+    #    st.warning("Incorrect password.")
+   # st.stop()
     
 st.markdown("""
 <style>
